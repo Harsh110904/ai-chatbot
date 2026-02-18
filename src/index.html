@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Chatbot</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #messages { height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+        #input { width: 70%; padding: 5px; }
+        #send { padding: 5px 15px; }
+        .message { margin: 5px 0; padding: 5px; border-radius: 5px; }
+        .user { background: #e3f2fd; text-align: right; }
+        .ai { background: #f3e5f5; }
+    </style>
+</head>
+<body>
+    <h1>AI Chatbot</h1>
+    <div id="messages"></div>
+    <input type="text" id="input" placeholder="Type your message...">
+    <button id="send">Send</button>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const messages = document.getElementById('messages');
+        const input = document.getElementById('input');
+        const send = document.getElementById('send');
+
+        function addMessage(text, isUser) {
+            const div = document.createElement('div');
+            div.className = `message ${isUser ? 'user' : 'ai'}`;
+            div.textContent = text;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        send.addEventListener('click', () => {
+            const text = input.value.trim();
+            if (text) {
+                addMessage(text, true);
+                socket.emit('ai-message', text);
+                input.value = '';
+            }
+        });
+
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') send.click();
+        });
+
+        socket.on('ai-message-response', (response) => {
+            addMessage(response, false);
+        });
+
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+    </script>
+</body>
+</html>
